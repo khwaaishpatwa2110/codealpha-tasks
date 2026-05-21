@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript Music Player - ARIRANG</title>
+    <title>Music Player - ARIRANG</title>
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -26,18 +26,28 @@
             padding: 1rem;
         }
 
+        /* --- RESPONSIVE CONTAINER --- */
         .player-container {
             background-color: #121212;
             border-radius: 1.5rem;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
             width: 100%;
-            max-width: 28rem;
+            /* Default Mobile View: max 450px wide, stacks vertically */
+            max-width: 450px; 
+            max-height: 95vh;
             border: 1px solid #1f2937;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
         }
 
         .player-section {
             padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
         /* Cover Art styling */
@@ -99,6 +109,7 @@
         /* Progress Bar */
         .progress-container {
             margin-bottom: 1rem;
+            width: 100%;
         }
 
         .progress-labels {
@@ -133,7 +144,7 @@
         }
         
         .control-btn.active {
-            color: #dc2626; /* Red color when toggle is active */
+            color: #dc2626;
         }
 
         .play-btn {
@@ -174,6 +185,7 @@
             padding: 0 1rem;
             color: #6b7280;
             font-size: 0.875rem;
+            width: 100%;
         }
 
         /* Playlist Section */
@@ -181,6 +193,10 @@
             background-color: rgba(0,0,0,0.4);
             border-top: 1px solid #1f2937;
             padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden; /* Contains the scrolling list inside */
         }
 
         .playlist-title {
@@ -192,6 +208,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            flex-shrink: 0;
         }
 
         .playlist-title i {
@@ -199,7 +216,8 @@
         }
 
         .playlist {
-            max-height: 14rem;
+            /* On mobile, limit height so the player doesn't get pushed off screen */
+            flex: 1;
             overflow-y: auto;
             padding-right: 0.5rem;
             list-style: none;
@@ -222,11 +240,9 @@
         .playlist-item.active {
             background-color: #1f2937;
             border-left: 4px solid #dc2626;
-            /* Adjust padding to account for the border */
             padding-left: calc(0.5rem - 4px); 
         }
 
-        /* Playlist Item Internals */
         .pl-index {
             color: #6b7280;
             width: 1.5rem;
@@ -269,6 +285,21 @@
             text-overflow: ellipsis;
         }
 
+        .explicit-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #9ca3af;
+            color: #111827;
+            font-size: 0.6rem;
+            font-weight: 700;
+            height: 0.9rem;
+            width: 0.9rem;
+            border-radius: 0.15rem;
+            margin-right: 0.25rem;
+            vertical-align: text-bottom;
+        }
+
         .pl-icon-active {
             color: #ef4444;
             font-size: 0.75rem;
@@ -282,12 +313,15 @@
             margin-right: 0.25rem;
         }
 
-        /* Custom styling for range inputs */
+        /* Inputs & Scrollbar */
         input[type=range] {
             -webkit-appearance: none;
             appearance: none;
             width: 100%;
-            background: transparent;
+            height: 4px; /* Move the track height here */
+            background: #374151; /* Default background */
+            border-radius: 2px;
+            outline: none;
         }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
@@ -297,47 +331,65 @@
             border-radius: 50%;
             background: #dc2626;
             cursor: pointer;
-            margin-top: -4px;
+            /* margin-top removed since the input itself is now the track */
         }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #374151;
-            border-radius: 2px;
-        }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #111827; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
 
-        /* Custom Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #111827; 
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #374151; 
-            border-radius: 4px;
-        }
-
-        /* Animation */
-        .spin {
-            animation: spin 8s linear infinite;
-        }
+        .spin { animation: spin 8s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
+        /* ==========================================================
+           DESKTOP MEDIA QUERY (The "Spotify" effect)
+           ========================================================== */
+        @media (min-width: 768px) {
+            .player-container {
+                flex-direction: row; /* Switch from vertical to horizontal */
+                max-width: 900px;    /* Allow it to get much wider */
+                height: 75vh;        /* Fixed height for desktop app feel */
+                max-height: 650px;
+                min-height: 450px;
+            }
+
+            .player-section {
+                width: 360px; /* Fixed width for the player side */
+                border-right: 1px solid #1f2937;
+                border-bottom: none;
+                padding: 2rem;
+                overflow-y: auto; /* Just in case screen is very short */
+            }
+
+            .playlist-section {
+                border-top: none; /* Remove mobile border */
+                padding: 1.5rem;
+                flex: 1; /* Takes up all remaining space on the right */
+            }
+
+            .playlist-title {
+                font-size: 1.1rem;
+                margin-bottom: 1rem;
+            }
+
+            .cover-art-wrapper {
+                width: 15rem; /* Makes album art slightly bigger on desktop */
+                height: 15rem;
+            }
+        }
     </style>
 </head>
 <body>
 
     <div class="player-container">
         
-        <!-- Main Player Section -->
-        <div class="player-section">
+        <!-- Main Player Section (Left side on Desktop, Top on Mobile) -->
+        <div class="player-section custom-scrollbar">
             <!-- Cover Art -->
-           <div class="cover-art-wrapper">
-                <img id="cover-art" src="arirang_album_cover.jpg" alt="Cover Art" class="cover-art">
+            <div class="cover-art-wrapper">
+                <img id="cover-art" src="./arirang_album_cover.jpg" alt="Cover Art" class="cover-art">
                 <div class="vinyl-dot"></div>
-            </div>  
+            </div>
 
             <!-- Song Info -->
             <div class="song-info">
@@ -354,7 +406,7 @@
                 </div>
             </div>
 
-            <!-- Controls (Added Shuffle and Loop) -->
+            <!-- Controls -->
             <div class="controls">
                 <button id="shuffle-btn" class="control-btn" title="Shuffle">
                     <i class="fas fa-shuffle"></i>
@@ -381,7 +433,7 @@
             </div>
         </div>
 
-        <!-- Playlist Section -->
+        <!-- Playlist Section (Right side on Desktop, Bottom on Mobile) -->
         <div class="playlist-section">
             <h3 class="playlist-title">
                 <i class="fas fa-compact-disc"></i> ARIRANG Tracklist
@@ -393,10 +445,9 @@
     </div>
 
     <script>
-        // --- 1. Data Structure (ARIRANG Tracklist pointing to local files in the SAME folder) ---
-        const albumCover = "arirang_album_cover.jpg"; 
+        // --- 1. Data Structure ---
+        const albumCover = "./arirang_album_cover.jpg"; 
         
-        // All 14 tracks. 
         const songs = [
             { title: "Body to Body", artist: "BTS", src: "./Body to Body.mp3", cover: albumCover, duration: "3:09" },
             { title: "Hooligan", artist: "BTS", src: "./Hooligan.mp3", cover: albumCover, duration: "3:02" },
@@ -406,7 +457,7 @@
             { title: "No. 29", artist: "BTS", src: "./No. 29.mp3", cover: albumCover, duration: "1:38" },
             { title: "SWIM", artist: "BTS", src: "./Swim.mp3", cover: albumCover, duration: "2:39" },
             { title: "Merry Go Round", artist: "BTS", src: "./Merry Go Round.mp3", cover: albumCover, duration: "3:49" },
-            { title: "NORMAL", artist: "BTS", src: "./NORMAL.mp3", cover: albumCover, duration: "3:01" },
+            { title: "NORMAL", artist: "BTS", src: "./NORMAL.mp3", cover: albumCover, duration: "3:01", explicit: true },
             { title: "Like Animals", artist: "BTS", src: "./Like Animals.mp3", cover: albumCover, duration: "3:09" },
             { title: "they don't know 'bout us", artist: "BTS", src: "./they don't know 'bout us.mp3", cover: albumCover, duration: "2:44" },
             { title: "One More Night", artist: "BTS", src: "./One More Night.mp3", cover: albumCover, duration: "2:47" },
@@ -444,18 +495,15 @@
         function loadSong(index) {
             const song = songs[index];
             titleEl.textContent = song.title;
-            artistEl.textContent = song.artist;
+            artistEl.innerHTML = (song.explicit ? '<span class="explicit-badge">E</span>' : '') + song.artist;
             coverArt.src = song.cover;
             audio.src = song.src;
             
-            // Reset UI
             progressEl.value = 0;
             currentTimeEl.textContent = "0:00";
-            
-            // Show the fallback duration first. It will auto-update when the metadata loads!
             durationEl.textContent = song.duration; 
             
-            renderPlaylist(); // Update active state in playlist
+            renderPlaylist(); 
         }
 
         function playSong() {
@@ -484,7 +532,7 @@
         function prevSong() {
             currentSongIndex--;
             if (currentSongIndex < 0) {
-                currentSongIndex = songs.length - 1; // Loop to end
+                currentSongIndex = songs.length - 1; 
             }
             loadSong(currentSongIndex);
             if (isPlaying) playSong();
@@ -492,7 +540,6 @@
 
         function nextSong() {
             if (isShuffle) {
-                // Pick a random song that isn't the currently playing one
                 let newIndex;
                 do {
                     newIndex = Math.floor(Math.random() * songs.length);
@@ -501,7 +548,7 @@
             } else {
                 currentSongIndex++;
                 if (currentSongIndex > songs.length - 1) {
-                    currentSongIndex = 0; // Loop to beginning of playlist
+                    currentSongIndex = 0; 
                 }
             }
             loadSong(currentSongIndex);
@@ -515,7 +562,6 @@
                 const li = document.createElement('li');
                 const isActive = index === currentSongIndex;
                 
-                // Using CSS classes
                 li.className = `playlist-item ${isActive ? 'active' : ''}`;
                 
                 li.innerHTML = `
@@ -523,7 +569,9 @@
                     <img src="${song.cover}" class="pl-cover">
                     <div class="pl-info">
                         <p class="pl-title">${song.title}</p>
-                        <p class="pl-artist">${song.artist}</p>
+                        <p class="pl-artist">
+                            ${song.explicit ? '<span class="explicit-badge">E</span>' : ''}${song.artist}
+                        </p>
                     </div>
                     ${isActive && isPlaying ? '<i class="fas fa-volume-up pl-icon-active"></i>' : ''}
                     <div class="pl-duration">${song.duration}</div>
@@ -545,19 +593,26 @@
             return `${min}:${sec < 10 ? '0' : ''}${sec}`;
         }
 
+        // Helper function to update the slider "fill" color dynamically
+        function updateSliderFill(slider) {
+            const min = slider.min || 0;
+            const max = slider.max || 100;
+            const val = slider.value;
+            // Calculate percentage, default to 0 if max is 0 (like before song loads)
+            const percentage = (max === 0) ? 0 : ((val - min) / (max - min)) * 100;
+            // Apply the ARIRANG red fill up to the thumb, then dark grey for the rest!
+            slider.style.background = `linear-gradient(to right, #dc2626 ${percentage}%, #374151 ${percentage}%)`;
+        }
+
         // --- 7. Event Listeners ---
-        
-        // Play/Pause Click
         playBtn.addEventListener('click', () => {
             isPlaying ? pauseSong() : playSong();
             renderPlaylist();
         });
 
-        // Prev/Next Clicks
         prevBtn.addEventListener('click', prevSong);
         nextBtn.addEventListener('click', nextSong);
 
-        // Shuffle / Loop Toggles
         shuffleBtn.addEventListener('click', () => {
             isShuffle = !isShuffle;
             shuffleBtn.classList.toggle('active', isShuffle);
@@ -568,57 +623,57 @@
             loopBtn.classList.toggle('active', isLoop);
         });
 
-        // Audio Metadata Loaded - This dynamically syncs durations
         audio.addEventListener('loadedmetadata', () => {
             progressEl.max = audio.duration;
             
-            // Get the exact, true length of the currently loaded MP3
             const exactDuration = formatTime(audio.duration);
-            
-            // Update the main player text
             durationEl.textContent = exactDuration;
-            
-            // Update the playlist array so the tracklist matches
             songs[currentSongIndex].duration = exactDuration;
             
-            // Target the active playlist item and fix its duration text so it stays in sync
             const activeDurationEl = document.querySelector('.playlist-item.active .pl-duration');
             if (activeDurationEl) {
                 activeDurationEl.textContent = exactDuration;
             }
+            
+            // Update the progress slider fill when max changes
+            updateSliderFill(progressEl);
         });
 
-        // Audio Time Update (update progress bar)
         audio.addEventListener('timeupdate', () => {
             progressEl.value = audio.currentTime;
             currentTimeEl.textContent = formatTime(audio.currentTime);
+            // Update the red fill as the song plays!
+            updateSliderFill(progressEl);
         });
 
-        // Autoplay/Loop/Shuffle integration: What happens when the song ends
         audio.addEventListener('ended', () => {
             if (isLoop) {
-                // Replay the same song
                 audio.currentTime = 0;
                 playSong();
             } else {
-                // Normal autoplay or shuffle to the next song
                 nextSong();
             }
         });
 
-        // Progress Bar Interaction
         progressEl.addEventListener('input', (e) => {
             audio.currentTime = e.target.value;
+            // Update fill when dragging the progress bar
+            updateSliderFill(progressEl);
         });
 
-        // Volume Interaction
         volumeEl.addEventListener('input', (e) => {
             audio.volume = e.target.value / 100;
+            // Update fill when dragging the volume bar
+            updateSliderFill(volumeEl);
         });
 
         // --- 8. Initialization ---
         loadSong(currentSongIndex);
-        audio.volume = volumeEl.value / 100; // Set initial volume
+        audio.volume = volumeEl.value / 100;
+        
+        // Initialize the slider fills on load
+        updateSliderFill(volumeEl);
+        updateSliderFill(progressEl);
 
     </script>
 </body>
