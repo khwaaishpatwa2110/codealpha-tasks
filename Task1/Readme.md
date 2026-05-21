@@ -16,29 +16,6 @@ A lightweight, responsive image gallery built with **vanilla HTML, CSS, and Java
 |---|---|
 | Filterable grid of images | Full-screen overlay with navigation |
 
-## 🚀 Getting Started
-
-No build tools or installs needed. Just open the file in a browser.
-
-```bash
-# Clone the repo
-git clone https://github.com/your-username/your-repo-name.git
-
-# Open the gallery
-open image_gallery.html
-```
-
-Or simply download `image_gallery.html` and double-click it.
-
-## 🗂️ Project Structure
-
-```
-image_gallery.html   # Single self-contained file (HTML + CSS + JS)
-README.md
-```
-
-All logic, styles, and data live in one file for simplicity.
-
 ## 🛠️ Customization
 
 ### Adding or Replacing Images
