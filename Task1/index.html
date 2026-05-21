@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Custom Image Gallery</title>
+    
+    <style>
+        /* General Page Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        /* Filter Buttons */
+        .filters {
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .filter-btn:hover {
+            background-color: #ccc;
+        }
+
+        /* The "active" class highlights the currently selected button */
+        .filter-btn.active {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        /* Gallery Grid Layout */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Individual Image Styling */
+        .gallery-item img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .gallery-item img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Lightbox (Popup) Styling */
+        #lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+        }
+
+        #lightbox-img {
+            max-width: 90%;
+            max-height: 80vh;
+            margin-top: 5vh;
+            border-radius: 8px;
+        }
+
+        #lightbox-caption {
+            color: white;
+            font-size: 20px;
+            margin-top: 15px;
+        }
+
+        /* Lightbox Buttons */
+        .lightbox-btn {
+            position: absolute;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+        }
+
+        .lightbox-btn:hover {
+            color: #ccc;
+        }
+
+        #close-btn {
+            top: 20px;
+            right: 30px;
+        }
+
+        #prev-btn {
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+        }
+
+        #next-btn {
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>My Custom Gallery</h1>
+    
+    <!-- Updated Filter Buttons -->
+    <div class="filters">
+        <button class="filter-btn active" onclick="filterGallery('all')">All</button>
+        <button class="filter-btn" onclick="filterGallery('animals')">Animals</button>
+        <button class="filter-btn" onclick="filterGallery('cars')">Cars</button>
+        <button class="filter-btn" onclick="filterGallery('space')">Space</button>
+        <button class="filter-btn" onclick="filterGallery('food')">Food</button>
+        <button class="filter-btn" onclick="filterGallery('travel')">Travel</button>
+        <button class="filter-btn" onclick="filterGallery('nature')">Nature</button>
+    </div>
+
+    <!-- The images will be put inside this div by JavaScript -->
+    <div id="gallery-grid" class="gallery-grid"></div>
+
+    <!-- Lightbox Popup -->
+    <div id="lightbox">
+        <button id="close-btn" class="lightbox-btn" onclick="closeLightbox()">&times;</button>
+        <button id="prev-btn" class="lightbox-btn" onclick="prevImage()">&#10094;</button>
+        
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+            <img id="lightbox-img" src="" alt="">
+            <div id="lightbox-caption"></div>
+        </div>
+
+        <button id="next-btn" class="lightbox-btn" onclick="nextImage()">&#10095;</button>
+    </div>
+
+    <script>
+        // 1. New Custom Data Source (with fixed URLs and new categories)
+        let images = [
+            // Animals
+            { src: 'https://images.unsplash.com/photo-1591561582301-7ce6588cc286?w=800&q=80', category: 'animals', title: 'Cute Rabbit' },
+            { src: 'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=800&q=80', category: 'animals', title: 'Majestic Horse' },
+            
+            // Cars
+            { src: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&q=80', category: 'cars', title: 'Sports Car' },
+            { src: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80', category: 'cars', title: 'Ford Mustang' },
+            { src: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80', category: 'cars', title: 'Muscle Car' },
+            
+            // Space
+            { src: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80', category: 'space', title: 'Earth from Space' },
+            { src: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&q=80', category: 'space', title: 'Colorful Nebula' },
+            { src: 'https://images.unsplash.com/photo-1581822261290-991b38693d1b?w=800&q=80', category: 'space', title: 'Astronaut' },
+
+            // Food (Korean)
+            { src: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=800&q=80', category: 'food', title: 'Korean Bibimbap' },
+            { src: 'https://images.unsplash.com/photo-1635363638580-c2809d049eee?w=800&q=80', category: 'food', title: 'Spicy Tteokbokki' },
+            { src: 'https://images.unsplash.com/photo-1580651315530-69c8e0026377?w=800&q=80', category: 'food', title: 'Rabokki' },
+
+            // Travel
+            { src: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=800&q=80', category: 'travel', title: 'Eiffel Tower, Paris' },
+            { src: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80', category: 'travel', title: 'Tropical Beach' },
+
+            // Nature
+            { src: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80', category: 'nature', title: 'Mountain Valley' },
+            { src: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80', category: 'nature', title: 'Deep Forest' }
+        ];
+
+        let currentImages = images; 
+        let currentIndex = 0;
+
+        function displayImages(imageArray) {
+            let grid = document.getElementById("gallery-grid");
+            let htmlContent = ""; 
+
+            for (let i = 0; i < imageArray.length; i++) {
+                let imgData = imageArray[i];
+                htmlContent += '<div class="gallery-item" onclick="openLightbox(' + i + ')">';
+                htmlContent += '<img src="' + imgData.src + '" alt="' + imgData.title + '">';
+                htmlContent += '</div>';
+            }
+
+            grid.innerHTML = htmlContent;
+        }
+
+        function filterGallery(category) {
+            let buttons = document.getElementsByClassName("filter-btn");
+            
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove("active");
+                
+                let buttonText = buttons[i].innerText.toLowerCase();
+                if (buttonText === category) {
+                    buttons[i].classList.add("active");
+                }
+            }
+
+            if (category === 'all') {
+                currentImages = images; 
+            } else {
+                let filteredList = []; 
+                
+                for (let i = 0; i < images.length; i++) {
+                    if (images[i].category === category) {
+                        filteredList.push(images[i]);
+                    }
+                }
+                currentImages = filteredList; 
+            }
+
+            displayImages(currentImages);
+        }
+
+        function openLightbox(index) {
+            currentIndex = index; 
+            updateLightboxImage();
+            document.getElementById("lightbox").style.display = "block";
+        }
+
+        function closeLightbox() {
+            document.getElementById("lightbox").style.display = "none";
+        }
+
+        function updateLightboxImage() {
+            let imageToShow = currentImages[currentIndex];
+            document.getElementById("lightbox-img").src = imageToShow.src;
+            document.getElementById("lightbox-caption").innerText = imageToShow.title;
+        }
+
+        function nextImage() {
+            currentIndex = currentIndex + 1;
+            if (currentIndex >= currentImages.length) {
+                currentIndex = 0;
+            }
+            updateLightboxImage();
+        }
+
+        function prevImage() {
+            currentIndex = currentIndex - 1;
+            if (currentIndex < 0) {
+                currentIndex = currentImages.length - 1;
+            }
+            updateLightboxImage();
+        }
+
+        displayImages(currentImages);
+    </script>
+</body>
+</html>
