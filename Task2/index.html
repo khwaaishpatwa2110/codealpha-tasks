@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Music Player - ARIRANG</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- CSS Styling --- */
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(to bottom right, #111827, #000000);
+            color: #e5e7eb;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .player-container {
+            background-color: #121212;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+            width: 100%;
+            max-width: 28rem;
+            border: 1px solid #1f2937;
+            overflow: hidden;
+        }
+
+        .player-section {
+            padding: 2rem;
+        }
+
+        /* Cover Art styling */
+        .cover-art-wrapper {
+            position: relative;
+            width: 13rem;
+            height: 13rem;
+            margin: 0 auto 1.5rem auto;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            overflow: hidden;
+            border: 4px solid #1f2937;
+            background: #000;
+        }
+
+        .cover-art {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .vinyl-dot {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: auto;
+            width: 2.5rem;
+            height: 2.5rem;
+            background: #121212;
+            border-radius: 50%;
+            border: 1px solid #1f2937;
+            pointer-events: none;
+        }
+
+        /* Typography */
+        .song-info {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .song-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .song-artist {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            margin-top: 0.25rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 1rem;
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+
+        /* Player Controls */
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: color 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .control-btn:hover {
+            color: #ffffff;
+        }
+        
+        .control-btn.active {
+            color: #dc2626; /* Red color when toggle is active */
+        }
+
+        .play-btn {
+            width: 3.5rem;
+            height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #dc2626;
+            color: white;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .play-btn:hover {
+            background-color: #b91c1c;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(220,38,38,0.4);
+        }
+
+        .play-btn i {
+            margin-left: 2px;
+            font-size: 1.25rem;
+        }
+
+        .play-btn i.fa-pause {
+            margin-left: 0;
+        }
+
+        /* Volume */
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0 1rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        /* Playlist Section */
+        .playlist-section {
+            background-color: rgba(0,0,0,0.4);
+            border-top: 1px solid #1f2937;
+            padding: 1rem;
+        }
+
+        .playlist-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #9ca3af;
+            margin-bottom: 0.75rem;
+            padding: 0 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .playlist-title i {
+            color: #dc2626;
+        }
+
+        .playlist {
+            max-height: 14rem;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+            list-style: none;
+        }
+
+        .playlist-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .playlist-item:hover {
+            background-color: #1f2937;
+        }
+
+        .playlist-item.active {
+            background-color: #1f2937;
+            border-left: 4px solid #dc2626;
+            /* Adjust padding to account for the border */
+            padding-left: calc(0.5rem - 4px); 
+        }
+
+        /* Playlist Item Internals */
+        .pl-index {
+            color: #6b7280;
+            width: 1.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .pl-cover {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.25rem;
+            object-fit: cover;
+            border: 1px solid #374151;
+        }
+
+        .pl-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pl-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #e5e7eb;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .playlist-item.active .pl-title {
+            color: #ef4444;
+        }
+
+        .pl-artist {
+            font-size: 0.75rem;
+            color: #6b7280;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pl-icon-active {
+            color: #ef4444;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+        }
+
+        .pl-duration {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #9ca3af;
+            margin-right: 0.25rem;
+        }
+
+        /* Custom styling for range inputs */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #dc2626;
+            cursor: pointer;
+            margin-top: -4px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #374151;
+            border-radius: 2px;
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #111827; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #374151; 
+            border-radius: 4px;
+        }
+
+        /* Animation */
+        .spin {
+            animation: spin 8s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="player-container">
+        
+        <!-- Main Player Section -->
+        <div class="player-section">
+            <!-- Cover Art -->
+           <div class="cover-art-wrapper">
+                <img id="cover-art" src="arirang_album_cover.jpg" alt="Cover Art" class="cover-art">
+                <div class="vinyl-dot"></div>
+            </div>  
+
+            <!-- Song Info -->
+            <div class="song-info">
+                <h2 id="title" class="song-title">Song Title</h2>
+                <p id="artist" class="song-artist">Artist Name</p>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <input type="range" id="progress" value="0" min="0" max="100">
+                <div class="progress-labels">
+                    <span id="current-time">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+            </div>
+
+            <!-- Controls (Added Shuffle and Loop) -->
+            <div class="controls">
+                <button id="shuffle-btn" class="control-btn" title="Shuffle">
+                    <i class="fas fa-shuffle"></i>
+                </button>
+                <button id="prev-btn" class="control-btn" title="Previous">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button id="play-btn" class="play-btn" title="Play/Pause">
+                    <i id="play-icon" class="fas fa-play"></i>
+                </button>
+                <button id="next-btn" class="control-btn" title="Next">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+                <button id="loop-btn" class="control-btn" title="Repeat Song">
+                    <i class="fas fa-repeat"></i>
+                </button>
+            </div>
+
+            <!-- Volume Control -->
+            <div class="volume-container">
+                <i class="fas fa-volume-low"></i>
+                <input type="range" id="volume" value="100" min="0" max="100">
+                <i class="fas fa-volume-high"></i>
+            </div>
+        </div>
+
+        <!-- Playlist Section -->
+        <div class="playlist-section">
+            <h3 class="playlist-title">
+                <i class="fas fa-compact-disc"></i> ARIRANG Tracklist
+            </h3>
+            <ul id="playlist" class="playlist custom-scrollbar">
+                <!-- Playlist items injected via JS -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Data Structure (ARIRANG Tracklist pointing to local files in the SAME folder) ---
+        const albumCover = "arirang_album_cover.jpg"; 
+        
+        // All 14 tracks. 
+        const songs = [
+            { title: "Body to Body", artist: "BTS", src: "./Body to Body.mp3", cover: albumCover, duration: "3:09" },
+            { title: "Hooligan", artist: "BTS", src: "./Hooligan.mp3", cover: albumCover, duration: "3:02" },
+            { title: "Aliens", artist: "BTS", src: "./Aliens.mp3", cover: albumCover, duration: "2:47" },
+            { title: "FYA", artist: "BTS", src: "./FYA.mp3", cover: albumCover, duration: "3:00" },
+            { title: "2.0", artist: "BTS", src: "./2.0.mp3", cover: albumCover, duration: "2:49" },
+            { title: "No. 29", artist: "BTS", src: "./No. 29.mp3", cover: albumCover, duration: "1:38" },
+            { title: "SWIM", artist: "BTS", src: "./Swim.mp3", cover: albumCover, duration: "2:39" },
+            { title: "Merry Go Round", artist: "BTS", src: "./Merry Go Round.mp3", cover: albumCover, duration: "3:49" },
+            { title: "NORMAL", artist: "BTS", src: "./NORMAL.mp3", cover: albumCover, duration: "3:01" },
+            { title: "Like Animals", artist: "BTS", src: "./Like Animals.mp3", cover: albumCover, duration: "3:09" },
+            { title: "they don't know 'bout us", artist: "BTS", src: "./they don't know 'bout us.mp3", cover: albumCover, duration: "2:44" },
+            { title: "One More Night", artist: "BTS", src: "./One More Night.mp3", cover: albumCover, duration: "2:47" },
+            { title: "Please", artist: "BTS", src: "./Please.mp3", cover: albumCover, duration: "2:52" },
+            { title: "Into the Sun", artist: "BTS", src: "./Into the Sun.mp3", cover: albumCover, duration: "3:47" }
+        ];
+
+        // --- 2. DOM Elements ---
+        const audio = new Audio();
+        const coverArt = document.getElementById('cover-art');
+        const titleEl = document.getElementById('title');
+        const artistEl = document.getElementById('artist');
+        
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const loopBtn = document.getElementById('loop-btn');
+        
+        const progressEl = document.getElementById('progress');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const volumeEl = document.getElementById('volume');
+        
+        const playlistEl = document.getElementById('playlist');
+
+        // --- 3. State Variables ---
+        let currentSongIndex = 0;
+        let isPlaying = false;
+        let isShuffle = false;
+        let isLoop = false;
+
+        // --- 4. Core Functions ---
+        function loadSong(index) {
+            const song = songs[index];
+            titleEl.textContent = song.title;
+            artistEl.textContent = song.artist;
+            coverArt.src = song.cover;
+            audio.src = song.src;
+            
+            // Reset UI
+            progressEl.value = 0;
+            currentTimeEl.textContent = "0:00";
+            
+            // Show the fallback duration first. It will auto-update when the metadata loads!
+            durationEl.textContent = song.duration; 
+            
+            renderPlaylist(); // Update active state in playlist
+        }
+
+        function playSong() {
+            isPlaying = true;
+            
+            audio.play().then(() => {
+                playIcon.classList.remove('fa-play');
+                playIcon.classList.add('fa-pause');
+                coverArt.classList.add('spin');
+            }).catch(e => {
+                console.log("Audio play failed:", e);
+                titleEl.textContent = "⚠️ Track Unavailable";
+                artistEl.textContent = "Missing MP3 file";
+                pauseSong(); 
+            });
+        }
+
+        function pauseSong() {
+            isPlaying = false;
+            audio.pause();
+            playIcon.classList.remove('fa-pause');
+            playIcon.classList.add('fa-play');
+            coverArt.classList.remove('spin');
+        }
+
+        function prevSong() {
+            currentSongIndex--;
+            if (currentSongIndex < 0) {
+                currentSongIndex = songs.length - 1; // Loop to end
+            }
+            loadSong(currentSongIndex);
+            if (isPlaying) playSong();
+        }
+
+        function nextSong() {
+            if (isShuffle) {
+                // Pick a random song that isn't the currently playing one
+                let newIndex;
+                do {
+                    newIndex = Math.floor(Math.random() * songs.length);
+                } while (newIndex === currentSongIndex && songs.length > 1);
+                currentSongIndex = newIndex;
+            } else {
+                currentSongIndex++;
+                if (currentSongIndex > songs.length - 1) {
+                    currentSongIndex = 0; // Loop to beginning of playlist
+                }
+            }
+            loadSong(currentSongIndex);
+            if (isPlaying) playSong();
+        }
+
+        // --- 5. Playlist Integration ---
+        function renderPlaylist() {
+            playlistEl.innerHTML = '';
+            songs.forEach((song, index) => {
+                const li = document.createElement('li');
+                const isActive = index === currentSongIndex;
+                
+                // Using CSS classes
+                li.className = `playlist-item ${isActive ? 'active' : ''}`;
+                
+                li.innerHTML = `
+                    <div class="pl-index">${index + 1}</div>
+                    <img src="${song.cover}" class="pl-cover">
+                    <div class="pl-info">
+                        <p class="pl-title">${song.title}</p>
+                        <p class="pl-artist">${song.artist}</p>
+                    </div>
+                    ${isActive && isPlaying ? '<i class="fas fa-volume-up pl-icon-active"></i>' : ''}
+                    <div class="pl-duration">${song.duration}</div>
+                `;
+                li.addEventListener('click', () => {
+                    currentSongIndex = index;
+                    loadSong(currentSongIndex);
+                    playSong();
+                });
+                playlistEl.appendChild(li);
+            });
+        }
+
+        // --- 6. Formatting & Utilities ---
+        function formatTime(seconds) {
+            if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        // --- 7. Event Listeners ---
+        
+        // Play/Pause Click
+        playBtn.addEventListener('click', () => {
+            isPlaying ? pauseSong() : playSong();
+            renderPlaylist();
+        });
+
+        // Prev/Next Clicks
+        prevBtn.addEventListener('click', prevSong);
+        nextBtn.addEventListener('click', nextSong);
+
+        // Shuffle / Loop Toggles
+        shuffleBtn.addEventListener('click', () => {
+            isShuffle = !isShuffle;
+            shuffleBtn.classList.toggle('active', isShuffle);
+        });
+
+        loopBtn.addEventListener('click', () => {
+            isLoop = !isLoop;
+            loopBtn.classList.toggle('active', isLoop);
+        });
+
+        // Audio Metadata Loaded - This dynamically syncs durations
+        audio.addEventListener('loadedmetadata', () => {
+            progressEl.max = audio.duration;
+            
+            // Get the exact, true length of the currently loaded MP3
+            const exactDuration = formatTime(audio.duration);
+            
+            // Update the main player text
+            durationEl.textContent = exactDuration;
+            
+            // Update the playlist array so the tracklist matches
+            songs[currentSongIndex].duration = exactDuration;
+            
+            // Target the active playlist item and fix its duration text so it stays in sync
+            const activeDurationEl = document.querySelector('.playlist-item.active .pl-duration');
+            if (activeDurationEl) {
+                activeDurationEl.textContent = exactDuration;
+            }
+        });
+
+        // Audio Time Update (update progress bar)
+        audio.addEventListener('timeupdate', () => {
+            progressEl.value = audio.currentTime;
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+        });
+
+        // Autoplay/Loop/Shuffle integration: What happens when the song ends
+        audio.addEventListener('ended', () => {
+            if (isLoop) {
+                // Replay the same song
+                audio.currentTime = 0;
+                playSong();
+            } else {
+                // Normal autoplay or shuffle to the next song
+                nextSong();
+            }
+        });
+
+        // Progress Bar Interaction
+        progressEl.addEventListener('input', (e) => {
+            audio.currentTime = e.target.value;
+        });
+
+        // Volume Interaction
+        volumeEl.addEventListener('input', (e) => {
+            audio.volume = e.target.value / 100;
+        });
+
+        // --- 8. Initialization ---
+        loadSong(currentSongIndex);
+        audio.volume = volumeEl.value / 100; // Set initial volume
+
+    </script>
+</body>
+</html>
